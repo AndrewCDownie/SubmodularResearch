@@ -1,9 +1,12 @@
-from shapely.geometry import Point
-
+from shapely.geometry import Point,box
+import math
 
 def get_cover_func(f,domain):
     #Takes function and create a distritized intergral coverage function f(x) = int(F(x),U(s))
     print(f)
+
+
+ 
     
 class submodular_functions:
     def __init__(self,*args,**kwargs):
@@ -24,14 +27,18 @@ class submodular_functions:
         for poly in polygons:
             total_area += poly.area
             union_poly = union_poly.union(poly)
+        union_poly.intersection(box(0,0,100,100))
         return union_poly.area
 
         
 
+def dist(x,y):
+    return math.sqrt(math.pow(x[0]-y[0],2)+ math.pow(x[1]-y[1],2))
 
 
 
 def coverage(points,r):
+
     polygons = []
     if len(points) == 0:
         return 0
@@ -42,6 +49,7 @@ def coverage(points,r):
     for poly in polygons:
         total_area += poly.area
         union_poly = union_poly.union(poly)
+    
     return union_poly.area
 
 
