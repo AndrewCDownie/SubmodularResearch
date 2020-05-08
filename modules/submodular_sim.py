@@ -14,7 +14,7 @@ class submodular_sim:
         Initalized parameters for submodular functions and space elements to test
         function
         """
-        if f is not None and collable(f):
+        if f is not None and callable(f):
             self.f = f
         else:
             self.f = self.coverage
