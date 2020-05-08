@@ -5,6 +5,7 @@ Submodular maximization ideas using greedy strategies
 
 import math
 from shapely.geometry import Point,box
+from modules.boundfunctions import garea
 
 class submodular_sim:
 
@@ -75,8 +76,36 @@ class submodular_sim:
         x_max = max(Xi,key = lambda xi:self.fast_delta(xi,S,S_value) )
         return x_max
     
-    def distributed_dist_greedy(self,Xn):
-        pass       
+    def distributed_dist_greedy(self,Xn,a,b):
+        S = []
+        for Xi in Xn:
+            S.append(self.agent_dist_greedy(Xi,S,a,b))
+        return S
+    
+    def agent_dist_greedy(self,Xi,S,a,b):
+        xg = max(Xi,key = lambda x:self.f([x]))
+        xI = max(Xi,key = lambda x:self.lowerbound(x,S,b))
+        if self.upperbound(xg,S,a) <self.lowerbound(xI,S,b):
+            return xI
+        else:
+            return xg
+
+    def lowerbound(self,x,S,b):
+        fx = self.f([x])
+        marg = fx
+        for s in S:
+            d = self.dist(x,s)
+            marg += - garea(d,fx,b)
+        return max([marg,0])
+
+    def upperbound(self,x,S,a):
+        fx = self.f([x])
+        marg = fx
+        if len(S) == 0:
+            return marg
+        xi = max(S,key=lambda xi:garea(self.dist(x,xi),fx,a))
+        return max([fx - garea(self.dist(x,xi),fx,a),0])
+
 
     def coverage(self,S,x = None):
 
