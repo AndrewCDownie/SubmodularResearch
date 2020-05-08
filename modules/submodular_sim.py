@@ -5,16 +5,19 @@ Submodular maximization ideas using greedy strategies
 
 import math
 from shapely.geometry import Point,box
-import pygame
 
 class submodular_sim:
 
-    def __init__(self,X,Xn = None,dims = None):
+    def __init__(self,X = None,Xn = None,dims = None,f = None):
+        self.f = None
         """
         Initalized parameters for submodular functions and space elements to test
         function
         """
-        self.f = None
+        if f is not None and collable(f):
+            self.f = f
+        else:
+            self.f = self.coverage
         self.X = X
         self.Xn = Xn
         self.dims = dims
@@ -24,6 +27,10 @@ class submodular_sim:
         Sx.append(x)
         #print(Sx)
         return self.f(Sx)-self.f(S)
+
+    def fast_delta(self,x,S,last_val):
+        return self.f(S,x) - last_val
+    
 
     def greedy(self,n,delta_f = None):
         """
@@ -43,20 +50,54 @@ class submodular_sim:
             X.remove(x)
         return S
     
-    def coverage(self,S):
+    def fast_coverage_greedy(self,X,n):
+        S = []
+        X = X.copy()
+        last_val = 0
+        for i in range(n):
+            x = max(X,key = lambda xi:self.fast_delta(xi,S,last_val))
+            S.append(x)
+            last_val = self.coverage(S)
+            X.remove(x)
+        return S
+     
+    def distributed_greedy(self,Xn,graph):
+        #find Xin
+        #retrieve selected element
+        S = [] 
+        for i,Xi in enumerate(Xn):
+            Xin = [S[j] for j in graph[i]]
+            S.append(self.agent_greedy(Xi,Xin))
+        return S
+    
+    def agent_greedy(self,Xi,S):
+        S_value = self.f(S) 
+        x_max = max(Xi,key = lambda xi:self.fast_delta(xi,S,S_value) )
+        return x_max
+    
+    def distributed_dist_greedy(self,Xn):
+        pass       
+
+    def coverage(self,S,x = None):
+
         #print("Coverage",S)
         polygons = []
         if len(S) == 0:
             return 0
         for p in S:
             polygons.append(Point(p["x"],p["y"]).buffer(p["r"]))
+        
+        if x is not None:
+            polygons.append(Point(x["x"],x["y"]).buffer(x["r"]))
+
         total_area = 0
         union_poly = polygons[0]
         for poly in polygons:
             total_area += poly.area
             union_poly = union_poly.union(poly)
-        union_poly.intersection(box(0,0,self.dims[0],self.dims[1]))
+        #union_poly.intersection(box(0,0,self.dims[0],self.dims[1]))
         return union_poly.area
+
 
     def distDelta(self,x,S):
         dim = self.dims
