@@ -89,7 +89,48 @@ class submodular_sim:
             return xI
         else:
             return xg
+    def distributed_uninformed_greedy(self,Xn):
+        S = []
+        for Xi in Xn:
+            xg = max(Xi,key = lambda x:self.f([x]))
+            S.append(xg)
+        return S
+    def distributed_augmented_greedy(self,Xn,graph,a,b):
+        S = []
+        for i,Xi in enumerate(Xn):
+            Xin = [S[j] for j in graph[i]]
+            Xout = [S[j] for j in range(i) if j not in graph[i]]
+            S.append(self.agent_augmented_greedy(Xi,Xin,Xout,a,b))
+        return S
+    
+    def agent_augmented_greedy(self,Xi,Xin,Xout,a,b):
+        X = []
+        Xin_val = self.f(Xin)
+        xg = max(Xi,key = lambda x:self.fast_delta(x,Xi,Xin_val))
+        xI = max(Xi,key = lambda x:self.augmented_lowerbound(x,Xin,Xout,b,Xin_val))
+        if self.augmented_upperbound(xg,Xin,Xout,a,Xin_val) < self.augmented_lowerbound(xI,Xin,Xout,b,Xin_val):
+            return xI
+        else:
+            return xg
 
+    def augmented_lowerbound(self,x,Xin,Xout,b,Xin_val):
+        fx_Xin = self.fast_delta(x,Xin,Xin_val)
+        fx = self.f([x]) 
+        marg = fx_Xin
+        for x_out in Xout:
+            d = self.dist(x,x_out)
+            marg += -garea(d,fx,b) 
+        return max([marg,0])
+    
+    def augmented_upperbound(self,x,Xin,Xout,a,Xin_val):
+        fx_Xin = self.fast_delta(x,Xin,Xin_val)
+        fx = self.f([x]) 
+        marg = fx_Xin
+        if len(Xout) == 0:
+            return marg
+        x_h = max(Xout,key=lambda xi:garea(self.dist(x,xi),fx,a))
+        return max([fx_Xin - garea(self.dist(x,x_h),fx,a),0])
+    
     def lowerbound(self,x,S,b):
         fx = self.f([x])
         marg = fx
