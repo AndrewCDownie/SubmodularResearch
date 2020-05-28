@@ -42,13 +42,15 @@ class visualization():
         for p in points:
             pygame.draw.circle(self.display, self.colours[colour], (self.scale*round(p[0]),self.scale*round(p[1])),self.scale*r)
 
-    def draw_circles_dict(self,points,colour):
+    def draw_circles_dict(self,points,colour,width= 0):
         for p in points:
-            pygame.draw.circle(self.display, self.colours[colour], (self.scale*round(p["x"]),self.scale*round(p["y"])),self.scale*int(p['r']))
-
+            pygame.draw.circle(self.display, self.colours[colour], (self.scale*round(p["x"]),self.scale*round(p["y"])),self.scale*int(p['r']), width)
 
     def update(self):
         pygame.display.update(pygame.Rect(0, 0, 10000, 10000))
+
+    def clear(self):
+        self.display.fill(self.colours['WHITE'])
 
     def draw(self):
 
@@ -57,6 +59,9 @@ class visualization():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+
+
+
 
 def main():
     vis = visualization((100,100),5)
