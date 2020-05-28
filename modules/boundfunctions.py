@@ -1,3 +1,4 @@
+from modules.pairwisecoverage import area
 from math import sqrt,pi
 from shapely.geometry import Point
 def h(dist,fx,l):
@@ -16,4 +17,5 @@ def crappyg(dist,fx,a,b):
     Pg = Point(d,0).buffer(sqrt(a/pi))
     return (fx/a)*P.intersection(Pg).area
 
-
+def garea(dist,fx,b):
+    return area({'x':0,'y':0,'r':sqrt(fx/pi)},{'x':0,'y':dist,'r':sqrt(b/pi)})
