@@ -89,12 +89,34 @@ class submodular_sim:
             return xI
         else:
             return xg
+    
     def distributed_uninformed_greedy(self,Xn):
         S = []
         for Xi in Xn:
             xg = max(Xi,key = lambda x:self.f([x]))
             S.append(xg)
         return S
+    
+    def distributed_upperbound_greedy(self,Xn):
+        S = []
+        for Xi in Xn:
+            S.append(self.agent_upperbound(Xi,S))
+        return S
+
+    def distributed_lowerbound_greedy(self,Xn):
+        S = []
+        for Xi in Xn:
+            S.append(self.agent_lowerbound(Xi,S))
+        return S
+
+    def agent_upperbound(self,Xi,S):
+        x = max(Xi,key = lambda xi:self.full_info_upperbound(xi,S)) 
+        return x
+
+    def agent_lowerbound(self,Xi,S):
+        x = max(Xi,key = lambda xi:self.full_info_lowerbound(xi,S)) 
+        return x
+
     def distributed_augmented_greedy(self,Xn,graph,a,b):
         S = []
         for i,Xi in enumerate(Xn):
@@ -130,7 +152,7 @@ class submodular_sim:
             return marg
         x_h = max(Xout,key=lambda xi:garea(self.dist(x,xi),fx,a))
         return max([fx_Xin - garea(self.dist(x,x_h),fx,a),0])
-    
+     
     def lowerbound(self,x,S,b):
         fx = self.f([x])
         marg = fx
@@ -146,6 +168,23 @@ class submodular_sim:
             return marg
         xi = max(S,key=lambda xi:garea(self.dist(x,xi),fx,a))
         return max([fx - garea(self.dist(x,xi),fx,a),0])
+
+    def full_info_lowerbound(self,x,S):
+        fx = self.f([x])
+        marg = fx
+        for s in S:
+            d = self.dist(x,s)
+            marg += - garea(d,fx,self.f([s]))
+        return marg
+
+    def full_info_upperbound(self,x,S):
+        fx = self.f([x])
+        marg = fx
+        if len(S) == 0:
+            return marg
+        xi = max(S,key=lambda xi:garea(self.dist(x,xi),fx,self.f([xi])))
+        return max([fx - garea(self.dist(x,xi),fx,self.f([xi])),0])
+
 
 
     def coverage(self,S,x = None):
