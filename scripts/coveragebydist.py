@@ -1,7 +1,7 @@
 #from modules.submodular_sim import submodular_sim
 import matplotlib.pyplot as plt
 from shapely.geometry import Point
-from math import sqrt, pi, pow
+from math import sqrt, pi, pow,ceil
 r1 = 3
 
 def g3(dist):
@@ -42,8 +42,8 @@ def h(dist,fx,U):
 
 def crappyg(dist,fx,a,b):
     P = Point(0,0).buffer(sqrt(fx/pi))
-    d = (sqrt(fx/pi)+sqrt(a/pi))*(dist/(sqrt(fx/pi)+sqrt(b/pi)))
-    Pg = Point(d,0).buffer(sqrt(a/pi))
+    d = (sqrt(fx/pi)+sqrt(a/pi))*((dist)/(sqrt(fx/pi)+sqrt(b/pi)))
+    Pg = Point(d,0).buffer(sqrt((a)/pi))
     return (fx/a)*P.intersection(Pg).area
 
 
@@ -53,7 +53,7 @@ def crappyg(dist,fx,a,b):
 def testIntervalRange():
     #the interval is [a, b]
 
-    a = 350
+    a = 100
     b = 400
 
     xarea = (a+b)/2
@@ -96,9 +96,9 @@ def testIntervalRange():
     plt.plot(dist,E3)
     
     plt.xlabel(r"$d(x_i,x_j)$")
-    plt.ylabel(r"$f(x_1) - f(x_1|x_2)$")
-    plt.legend([r'$f(x_2) = b$',r'$f(x_2) = a$',r'$f(x_2) = f(x_1)$',r"Experimentally found $g$"])
-    plt.title(r"$f(x_1) - f(x_1|x_2)$ VS Distance")
+    plt.ylabel(r"$f(x_i) - f(x_i|x_j)$")
+    plt.legend([r'$f(x_i) - f(x_i|x_j)$ where $f(x_j) = b$',r'$f(x_i) - f(x_i|x_j)$ where $f(x_j) = a$',r'$f(x_i) - f(x_i|x_j)$ where $f(x_j) = f(x_i)$',r"Experimentally found $g$"])
+    plt.title(r"$f(x_i) - f(x_i|x_j)$ VS Distance")
     plt.show()
 
 def testLipshitz():
@@ -144,10 +144,29 @@ def testLipshitz():
     plt.legend(['actual',"lipshitz"])
     plt.xlabel(r"$d(x_i,x_j)$")
     plt.show()
+    
+
+def find_zero():
+    b = 1;
+    a = 0.99;
+    ra = sqrt(a/pi)
+    rb = sqrt(b/pi)
+    circleB = Point((0,0)).buffer(rb)
+    circleA = Point((0,ra+rb)).buffer(rb)
+    print(circleB.area)
+    print(circleA.area)
+    print("b-g(x,y)",circleB.area - circleB.intersection(circleA).area)
+    print("area of a:",a)
+    print("m: ",ceil(a/(circleB.intersection(circleA).area))) 
+    print("lowerbound: ",a/(a+b))
+
+def SurroundingCircles():
+    print("surrounding Circles")
+    
 
 
 def main():
-    testIntervalRange()
-
+    #testIntervalRange()
+    find_zero()
 if __name__ == "__main__":
     main()

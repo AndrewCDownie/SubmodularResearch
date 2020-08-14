@@ -5,6 +5,9 @@ from shapely.geometry import Point
 from math import sqrt, pi
 import random
 import matplotlib.pyplot as plt
+from timeit import default_timer as timer
+from modules.pairwisecoverage import area
+
 
 def h(dist,fx,l):
     P = Point(0,0).buffer(sqrt(fx/pi))
@@ -15,11 +18,16 @@ def g(dist,fx,U):
     P = Point(0,0).buffer(sqrt(fx/pi))
     Ph = Point(dist,0).buffer(sqrt(U/pi))
     return P.intersection(Ph).area
+def g2(dist,fx,U):
+    A = {"x":0,"y":0,'r':sqrt(fx/pi)}
+    B = {"x":0,"y":dist,'r':sqrt(U/pi)}
+    return area(A,B)
+    
 
 def crappyg(dist,fx,a,b):
     P = Point(0,0).buffer(sqrt(fx/pi))
-    d = (sqrt(fx/pi)+sqrt(a/pi))*(dist/(1+sqrt(fx/pi)+sqrt(b/pi)))
-    Pg = Point(d,0).buffer(sqrt(a/pi))
+    d = (sqrt(fx/pi)+sqrt(a/pi))*((dist)/(sqrt(fx/pi)+sqrt(b/pi)))
+    Pg = Point(d,0).buffer(sqrt((a)/pi))
     return (fx/a)*P.intersection(Pg).area
 
 
@@ -47,7 +55,7 @@ def marginal(x,S,b):
     marg = fx
     for s in S:
         d = submodular_sim.dist_(x,s)
-        marg += -g(d,fx,b)
+        marg += -g2(d,fx,b)
     return max([marg,0])
 
 
@@ -73,6 +81,43 @@ def dGreedyCrappy(X,n,a,b):
         S.append(xi)
         Xn.remove(xi)
     return S
+
+
+def uninformed(X,n,sim):
+    Xn = X.copy()
+    S = []
+    for i in range(n):
+        xi = max(Xn,key = lambda x:sim.coverage([x]))
+        S.append(xi)
+        Xn.remove(xi)
+
+    return S
+
+def marginalH(x,S,a):
+    fx = Point(0,0).buffer(x['r']).area
+    if len(S) == 0:
+        return fx
+    xh = max(S,key = lambda xi:h(submodular_sim.dist_(x,xi),fx,a))
+    return fx - h(submodular_sim.dist_(x,xh),fx,a)
+
+def improvement(X,n,a,b,sim):
+    Xn = X.copy()
+    deltas = []
+    S = []
+    for i in range(n):
+        xg = max(Xn,key = lambda x:sim.coverage([x]))
+        xi = max(Xn,key = lambda x:marginal(x,S,b))
+        maxMarginal = marginalH(xg,S,a)
+
+        if maxMarginal< marginal(xi,S,b):
+            xI = xi
+        else:
+            xI = xg 
+        deltas.append(sim.delta(xI,S))
+        S.append(xI)
+        Xn.remove(xI)
+    return S
+
 
 
 def calculateLowerBound(X,b):
@@ -110,17 +155,58 @@ def calcApproximationRatio(sim,X,a,b):
 
 def main():
 
-    a = 250
+    a = 200
     b = 300
 
     n = 70
-    dims = [100,100]
-    X = [{"x":random.random()*dims[0], "y":random.random()*dims[1], "r":sqrt(random.randint(a,b)/pi)} for i in range(100)]
-    sim = submodular_sim(X,dims = dims)
+    N = [15,20,25,30,35,40]
 
-    sim.f = sim.coverage
-    print("Running Regular Greedy...")
-    S1 = sim.greedy(n)
+    dims = [75,75]
+    GreedyData = []
+    dGreedyData = []
+    improveData = []
+    uninformedData = []
+    trials = 1 
+    for n in N:
+        greedyAvg = 0
+        dGreedyAvg = 0
+        improvedAvg = 0
+        uninformedAvg = 0
+        for i in range(trials):
+            X = [{"x":random.random()*dims[0], "y":random.random()*dims[1], "r":sqrt(random.randint(a,b)/pi)} for i in range(50)]
+            sim = submodular_sim(X,dims = dims)
+            print("Running Greedy...",n)
+            Sg = sim.fast_coverage_greedy(X,n)
+            print("Running dist Greedy...",n)
+            Sdist = dGreedy(X,n,a,b)
+            print("Running improvement...",n)
+            Sunidist = improvement(X,n,a,b,sim)
+            print("Running Uninformed...",n)
+            Suniformed = uninformed(X,n,sim)
+            GreedyValue = sim.coverage(Sg)
+            dGreedyValue = sim.coverage(Sdist)
+            improveGreedyValue = sim.coverage(Sunidist)
+            uninformedValue = sim.coverage(Suniformed)
+
+            print("Greedy value    : ",GreedyValue)
+            print("dGreedy value   : ",dGreedyValue)
+            print("impove Value    : ",improveGreedyValue)
+            print("uninformed Value: ",uninformedValue)
+
+            greedyAvg +=GreedyValue
+            dGreedyAvg +=dGreedyValue
+            improvedAvg += improveGreedyValue
+            uninformedAvg += uninformedValue
+        GreedyData.append(greedyAvg/trials)
+        dGreedyData.append(dGreedyAvg/trials)
+        improveData.append(improvedAvg/trials)
+        uninformedData.append(uninformedAvg/trials)
+    plt.plot(N,GreedyData)
+    plt.plot(N,dGreedyData)
+    plt.plot(N,improveData)
+    plt.plot(N,uninformedData)
+    plt.legend(['Greedy','Lower Bound','Improved Over Uninformed',"Uninformed"])
+    plt.show()
     """
     print("running Dist Greedy...")
     S2 = dGreedy(X,n,a,b)
@@ -147,8 +233,6 @@ def main():
 
     vis.draw()
     """
-    ratios = calcApproximationRatio(sim,S1,a,b)
-    plt.plot(ratios)
-    plt.show()
+
 if __name__=="__main__":
     main()

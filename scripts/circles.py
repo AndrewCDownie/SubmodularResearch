@@ -21,7 +21,7 @@ def get_circles(n,rc,rout,center):
 def run():
     dims = (1000,1000)
     scale = 1
-    vis = visualization(dims,scale,cap="circle diagram")
+    #vis = visualization(dims,scale,cap="circle diagram")
     sim = submodular_sim([],dims = dims)
     cirs = get_circles(6,sqrt(1000/pi),sqrt(10000/pi),(500,500)) 
     
@@ -67,16 +67,17 @@ def run():
     for bound in bounds:
         plt.plot(As,bound)
     plt.legend(legend_text)
-    plt.xlabel("lowerbound a") 
-    plt.ylabel("Bound")
+    plt.title("ratio with p surrounding circles")
+    plt.xlabel("Lower bound on interval [a,b]") 
+    plt.ylabel("ratio")
     plt.show()
-    
+    """ 
     #draw sample visual - kinda broken scalling right now 
     print("coverage:",sim.coverage(cirs)) 
     vis.draw_circles_dict(cirs[1:],"BLUE")
     vis.draw_circles_dict(cirs[0:1],"RED")
     vis.update()
     vis.draw()
-
+    """
 if __name__ == "__main__":
     run()
