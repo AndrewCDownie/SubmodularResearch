@@ -1,14 +1,8 @@
-from modules.pairwisecoverage import dist,weight
+from pairwisecoverage import dist,similarity_weight
 import numpy as np
 from math import sqrt,pi,floor
 import random
 import networkx as nx
-from modules.submodular_sim import submodular_sim
-
-
-
-
-
 
 
 def compute_similarity_matrix(Xn,n,m,a,b):
