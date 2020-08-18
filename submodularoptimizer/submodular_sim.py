@@ -5,8 +5,8 @@ Submodular maximization ideas using greedy strategies
 
 import math
 from shapely.geometry import Point,box
-from modules.boundfunctions import garea
-
+from boundfunctions import garea
+from pairwisecoverage import similarity_weight, dist
 class submodular_sim:
 
     def __init__(self,X = None,Xn = None,dims = None,f = None):
@@ -184,6 +184,18 @@ class submodular_sim:
             return marg
         xi = max(S,key=lambda xi:garea(self.dist(x,xi),fx,self.f([xi])))
         return max([fx - garea(self.dist(x,xi),fx,self.f([xi])),0])
+
+
+    def similarity_weight_greedy(self,Xn,a,b):
+        S = []
+        for X in Xn:
+            x_i =  max(X,key = lambda x:self.compute_weight_marginal(x,S,a,b))
+            S.append(x_i)
+        return S
+
+    def compute_weight_marginal(self,x,S,a,b):
+        similarity_weights = [similarity_weight(self.dist(x,s),a,b) for s in S]
+        return self.f([x])*(1-sum(similarity_weights))
 
 
 
