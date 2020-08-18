@@ -1,11 +1,14 @@
-from modules.submodular_sim import submodular_sim
+import sys
+sys.path.append(sys.path[0] + "/..")
+print(sys.path)
+from submodular_sim import submodular_sim
 import random
-from modules.visualization import visualization
+from visualization import visualization
 import matplotlib.pyplot as plt
 from math import sqrt, pi
 import numpy as np
-from modules.pairwisecoverage import dist, weight
-from Similarity_matrix import compute_similarity_matrix
+from pairwisecoverage import dist, similairty_weight
+from similarity_matrix import compute_similarity_matrix
 def compute_upper_lower_marginal(S,sim):
     H = 0
     G = 0
@@ -95,7 +98,7 @@ def run():
     for i in range(n):
         for j in range(i):
             d = dist(Sl[i],Sl[j])
-            weights.append(weight(d,a,b))
+            weights.append(similarity_weight(d,a,b))
     
     print("sum of weights:",sum(weights))
     #alpha = sum(weights)
