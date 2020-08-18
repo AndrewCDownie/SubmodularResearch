@@ -1,4 +1,4 @@
-from modules.pairwisecoverage import area
+from pairwisecoverage import area
 from math import sqrt,pi
 from shapely.geometry import Point
 def h(dist,fx,l):
