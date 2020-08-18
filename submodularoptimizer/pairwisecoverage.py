@@ -1,7 +1,7 @@
 from math import sqrt, pow,asin,acos,pi
 
 
-def weight(d,a,b):
+def similarity_weight(d,a,b):
     A = {"x":d,"y":0,"r":sqrt(a/pi)}
     B = {"x":0,"y":0,"r":sqrt(b/pi)}
     return area(A,B)/a
