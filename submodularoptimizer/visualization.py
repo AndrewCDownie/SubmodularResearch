@@ -1,6 +1,5 @@
 import pygame
 
-
 class visualization():
     def __init__(self,dims,scale,cap = ""):
         pygame.init()
