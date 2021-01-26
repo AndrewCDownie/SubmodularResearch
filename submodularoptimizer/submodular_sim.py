@@ -4,9 +4,10 @@ Submodular maximization ideas using greedy strategies
 """
 
 import math
+import random
 from shapely.geometry import Point,box
 from boundfunctions import garea
-from pairwisecoverage import similarity_weight, dist
+from pairwisecoverage import similarity_weight, dist,area
 class submodular_sim:
 
     def __init__(self,X = None,Xn = None,dims = None,f = None):
@@ -177,21 +178,38 @@ class submodular_sim:
             marg += - garea(d,fx,self.f([s]))
         return marg
 
+    def full_info_lowerbound_v2(self,x,S):
+        fx = self.f([x])
+        marg = fx
+        for s in S:
+            #d = self.dist(x,s)
+            marg += - area(x,s)
+        return marg
+
     def full_info_upperbound(self,x,S):
         fx = self.f([x])
         marg = fx
         if len(S) == 0:
             return marg
         xi = max(S,key=lambda xi:garea(self.dist(x,xi),fx,self.f([xi])))
-        return max([fx - garea(self.dist(x,xi),fx,self.f([xi])),0])
+        return fx - garea(self.dist(x,xi),fx,self.f([xi]))
 
 
-    def similarity_weight_greedy(self,Xn,a,b):
-        S = []
-        for X in Xn:
-            x_i =  max(X,key = lambda x:self.compute_weight_marginal(x,S,a,b))
-            S.append(x_i)
-        return S
+    def pairwise_lowerbound_set(self,x,S):
+        fx = len(x) #value of x
+        marg = fx #lower bound of marginal
+        for s in S:
+            marg -= (fx -(len(x.union(s))- len(s)))
+        return max([marg,0])
+
+    def pairwise_upperbound_set(self,x,S):
+        #check for empty set
+        if len(S) == 0:
+            return len(x)
+        #find the element with smallest pairwise marginal 
+        s_min = min(S,key = lambda s:len(x.union(s))-len(s))
+        return len(x.union(s_min))-len(s_min)
+
 
     def compute_weight_marginal(self,x,S,a,b):
         similarity_weights = [similarity_weight(self.dist(x,s),a,b) for s in S]
@@ -234,17 +252,21 @@ class submodular_sim:
 
     def dist_(x1,x2):
         return math.sqrt(math.pow(x1['x']-x2['x'],2)+ math.pow(x1['y']-x2['y'],2))
+    
+    # def docSumDelta(self,x,S):
+    #     l = 10
+    #     val = 0
+    #     discount= 0
+    #     for v in= self.X:
+    #         if v not in S:
+    #             val += self.dist(x,v)
+    #     for s in S:
+    #         discount += self.dist(x,s)
 
-    def docSumDelta(self,x,S):
-        l = 10
-        val = 0
-        discount= 0
-        for v in self.X:
-            if v not in S:
-                val += self.dist(x,v)
-        for s in S:
-            discount += self.dist(x,s)
+    #     return (l*discount*self.coverage([x])  - val)  
 
-        return (l*discount*self.coverage([x])  - val)  
+    def generate_uniform_random(self,n,m,a,b):
+        data_points = [[{'x':random.random()*self.dims[0],'y':random.random()*self.dims[1],'r':random.uniform(math.sqrt(a/math.pi),math.sqrt(b/math.pi))} for i in range(m)] for j in range(n)]
+        return data_points
 
 

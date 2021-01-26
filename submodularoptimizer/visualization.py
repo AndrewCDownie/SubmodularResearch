@@ -51,6 +51,7 @@ class visualization():
     def clear(self):
         self.display.fill(self.colours['WHITE'])
 
+    
     def draw(self):
 
         running = True
